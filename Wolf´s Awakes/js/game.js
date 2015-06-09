@@ -3,6 +3,12 @@ var game = new Phaser.Game(1000, 600, Phaser.AUTO, 'gameDiv');
 
 game.global = {
 	score: 0
+    
+};
+
+game.global = {
+	score2: 0
+    
 };
 
 game.state.add('boot', bootState);

@@ -16,11 +16,6 @@ var playState = {
      
          
         
-       
-       
-       
-         
-         
   
         
     //array de enemigos :) para matar un rato
@@ -35,7 +30,8 @@ var playState = {
     
  
       this.createWorld(); 
-    
+         
+    this.music2 = game.add.audio('lobo');
         
     enemigosTotales = 30;
     enemigosVivos = 30;
@@ -81,14 +77,7 @@ var playState = {
         this.mana_possible = 200;
         this.time = 500;
 
-		this.enemies = game.add.group();
-		this.enemies.enableBody = true;
-		this.enemies.createMultiple(10, 'enemy');
-        //enemies.push(this.enemies);
-         
-         
-         
-        
+	
         //array de pociones
         this.pociones = game.add.group();
          this.ArrayPociones = [];
@@ -110,25 +99,13 @@ var playState = {
         this.trofeo.enableBody = true;
         this.trofeo.anchor.setTo(0.5, 0.5);
 
-        
-        //Disparar
-        this.balas = game.add.group();
-        this.balas.enableBody = true;
-        this.balas.physicsBodyType = Phaser.Physics.ARCADE;
-        this.balas.createMultiple (100, 'laser');
-        this.balas.setAll('anchor.x' , 0.5);
-        this.balas.setAll('anchor.y' , 1);
-        this.balas.setAll('outOfBoundSkill', true);
-        this.balas.setAll('checkWorldBounds', true);
-        this.balaTime = 1500;
         this.tecla = game.input.keyboard.addKey(Phaser.Keyboard.X);
         this.tecla2 = game.input.keyboard.addKey(Phaser.Keyboard.Z);
         this.tecla3 =  game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         
       
          
-         //labels
-         
+     
       //  game.add.tileSprite(0, 0, 24000, 600, 'fondo');
         this.manaBar = this.add.sprite(383, 26, 'manaBar');
         this.manaBar.cropEnabled = true;
@@ -153,13 +130,13 @@ var playState = {
 		              this.vidas.enableBody = true;
 		              this.vidas.createMultiple(30, 'corazon');
         //loop que crea las vidasR
-                      game.time.events.loop(10000, this.addVida, this);
+                     
                       
 
 
     //crea los enemigos cada 2 segundos
         this.createWorld();
-		game.time.events.loop(1200, this.addEnemy, this);
+		
         
         
 
@@ -181,10 +158,13 @@ var playState = {
 		this.coinSound = game.add.audio('coin');
 		//this.deadSound = game.add.audio('dead');	
 		
-		this.nextEnemy = 0;
-        
-      
-        
+		
+ 
+         
+        this.music = game.add.audio('music');
+        this.music.loop = true;
+        this.music.play();
+
         
       
  
@@ -218,72 +198,28 @@ var playState = {
         
 		game.physics.arcade.overlap(this.player, this.ArrayPociones, this.takePowerUp, null, this);
         game.physics.arcade.overlap(this.player, this.ArrayMonedas, this.MonedaPillada, null, this);
+        game.physics.arcade.overlap(this.player, this.trofeo, this.playerWin, null, this);
         game.physics.arcade.collide(this.player, this.layer2);
-		game.physics.arcade.collide(this.enemies, this.layer);
-        game.physics.arcade.collide(this.follower, this.player, this.loseVida, null, this);
+	    game.physics.arcade.overlap(this.player, this.follower, this.playerDie, null, this);
         
         
-        
+ 
         
          //mana bar
          this.healthBar.width = (this.mana_que_tinc / this.mana_possible) * 167;
         
-        //fisicas
-   //Sistema per matar enemics disparant
-        this.balas.forEachAlive(function(dispararBala){
-            this.enemies.forEachAlive(function(enemy){
-                game.physics.arcade.overlap(this.balas, this.enemies, this.enemyDie, null, this);
-            },this);
-        },this);
-         //añadimos fisicas a las vidas
-                      game.physics.arcade.collide(this.vidas, this.walls);
-        //añadimos el contacto con el jugador
-                      game.physics.arcade.overlap(this.player, this.vidas, this.takeVida, null, this);
-
+  
 		if (!this.player.inWorld) {
 	    this.playerDie();
+            this.music.stop()
 	  	}
+        
 
 		this.movePlayer();
         this.follow();
 
-		if (this.nextEnemy < game.time.now) {
-			var start = 4000, end = 1000, score = 100;
-			var delay = Math.max(start - (start-end)*game.global.score/score, end);
-			    
-			this.addEnemy();
-			this.nextEnemy = game.time.now + delay;
-            
-            
-            
-            }
-
-
-          if(this.tecla.isDown){
-              this.dispararBala();
-          }
-        
-         if(this.tecla2.isDown){
-              this.dispararBala();
-          }
-        
-        
-
-
 
 	},
-    
-    
-      enemyDie: function(bullet, enemy) {  
-        bullet.kill();
-        this.emitter.x = enemy.x;
-        this.emitter.y = enemy.y;
-        this.emitter.start(true, 600, null, 15);
-        enemy.kill();
-        
-    },
-    
-
     
 
 	movePlayer: function(manabar) {
@@ -296,6 +232,14 @@ var playState = {
 			this.player.animations.play('left');
             
    
+            
+            if (this.tecla3.isDown){
+            if(this.mana_que_tinc > 0){
+                
+                this.player.body.velocity.x = -400;
+                this.mana_que_tinc-=1;
+            }
+            }
             
 		}
 		
@@ -320,11 +264,11 @@ var playState = {
         
         
 		if (this.cursor.up.isDown || this.wasd.up.isDown){
-           // if (this.player.body.onFloor()) {
+            if (this.player.body.onFloor()) {
 			this.jumpSound.play();
             this.player.body.velocity.y = -320;
             
-    //   }
+      }
             
             
             
@@ -340,30 +284,7 @@ var playState = {
         
 	},
 
-	addEnemy: function() {
-		var enemy = this.enemies.getFirstDead();
-	 var Grande = Phaser.Math.randomSign();
-		if (!enemy) {
-			return;
-		}
-        
-  
-
-                 enemy.anchor.setTo(0.5, 1);
-		         enemy.reset(game.world.centerX, 0);
-		         enemy.body.gravity.y = 500;
-		         enemy.body.velocity.x = 100 * Phaser.Math.randomSign();
-		         enemy.body.bounce.x = 1;
-		         enemy.checkWorldBounds = true;
-		         enemy.outOfBoundsKill = true;
-                
-                
-
-        
-	},
-
 	
-    
     
     
     killsuperarLabel: function(){
@@ -377,8 +298,9 @@ var playState = {
         
     
                 this.coinSound.play();
-                 this.game.global.score += 5;
-                 moneda.kill();
+                game.global.score += 5;
+                this.scoreLabel.text = 'score: ' + game.global.score;
+                moneda.kill();
         
 
         
@@ -392,8 +314,65 @@ var playState = {
     pillarMonedita: function(){
         
         
-        var Monedita_x = [640,680,720,760,800,840,880,920,960,1000,1040,1080,1120,1160,1200,1240,1280,1320,1360,1400,1580,1620,1660,1700,1740,1780,1820,1860,1900,1940,1980,2080,2120,2160,2200,2240,2280,2320,2360,2400,2440,2630,2670,2710,2750,2790,2810,2850,2890,2930,2970,3010,3050, ,2965,3005,3045,2910,2950,2990,3030,3070,3110,3150,3190,3230,3270,3310,3350,3390,3430,3470,3510,3550,3590,3630,3670,3710,3750,3790,3830,3870,3910,3950,3990,4030,4070,4275,4315,4355,4395,4435,4475,4515,4555,4595,4635,4675,4715,4755,4795,4835,4875,4915,4365,4405,4445,4485,4525,4565,4605,4645,4685,4725,4765,4805,4845,4885,4465,4505,4545,4585,4625,4665,4705,4745,4785,4520,4560,4600,4640,4680,4720,5120,5160,5200,5240,5280,5320,5360,5520,5560,5600,5640,5680,5720,5760,5800,5840,5880,5920,5960,6000,6040,6080,6120,6160,6200,6240,6280,6320,6360,6400,6440,6480,6520,6560,6600,];
-var Monedita_y =[1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1400,1385,1375,1430,1430,1430,1430,1430,1430,1430,1430,1430,1405,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1333,1333,1333,1333,1333,1230,1230,1230,1230,1230,1230,1230,1135,1135,1135,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1230,1230,1230,1230,1230,1230,1230,1230,1230,1230,1230,1230,1230,1230,1130,1130,1130,1130,1130,1130,1130,1130,1130,1030,1030,1030,1030,1030,1030,1230,1230,1230,1230,1230,1230,1230,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,];
+        var Monedita_x =      [640,680,720,760,800,840,880,920,960,1000,1040,1080,1120,1160,1200,1240,1280,1320,1360,1400,1580,1620,1660,1700,1740,1780,1820,1860,1900,1940,1980,2080,2120,2160,2200,2240,2280,2320,2360,2400,2440,2630,2670,2710,2750,2790,
+                          2810,2850,2890,2930,2970,3010,3050, ,2965,3005,3045,2910,2950,2990,3030,3070,3110,3150,3190,3230,3270,3310,3350,3390,3430,3470,3510,3550,3590,3630,3670,3710,3750,3790,3830,3870,3910,3950,3990,4030,4070,4275,4315,4355,4395,4435,4475,4515,4555,4595,4635,4675,4715,4755,4795,4835,4875,4915,
+                         4365,4405,4445,4485,4525,4565,4605,4645,4685,4725,4765,4805,4845,4885,
+                         4465,4505,4545,4585,4625,4665,4705,4745,4785,
+                         4520,4560,4600,4640,4680,4720,
+                         5120,5160,5200,5240,5280,5320,5360,
+                         5520,5560,5600,5640,5680,5720,5760,5800,5840,5880,5920,5960,6000,6040,6080,
+                         6120,6160,6200,6240,6280,6320,6360,6400,6440,6480,
+                         6620,6660,6700,6740,6780,6820,6860,6900,6940,6980,7020,7060,7100,7140,7180,7220,7260,7300,7340,7380,7420,7460,7500,7540,7580,7620,7660,7700,7740,  7780,
+                         8220,8260,8300,8340,8380,
+                         6770,6810,6850,6890,6930,
+                         8760,8800,8840,8880,8920,8920,8960,9000,9040,9080,
+                         9320,9360,9400,9440,9480,9520,9560,9600,9640,9680,9720,9760,9800,9840,
+                         //escaleras
+                         9910,9960,10015,10070,10120,10170,10220,10270,10320,
+                         9900,9940,9980,10020,10060,10100,10140,10180,10220,10260,10300,10340,10380,10420,
+                         10515, 10555,
+                         10610,10650,10690,10730,10770,
+                         10820,10860,
+                         10360, 10400, 10460, 10520,10570,10630,10670,10730,10770,10810,10870,
+                         10960,11000,11040,11080,11120,11160,
+                         11220,11260,11300,11340,11380,11420,11460,11500,
+                         11540,11580,11610,11650,11690,11730,11770,
+                         11810,11850,11890,11930,11970,12010,12050,12090,12130,12170,12210,12250,12290,12330,12370,12410,12450,12490,12530,12570,12610,12650,12690,
+                         12710,12770,12820,
+                         12860,12900,12940,
+                         13010,13050,13090,
+                         12910,12950,12990,13030,13070,13110,13150,13190,13230,13270,13310,13350,13390,13430,13470,
+                         ];
+ var Monedita_y = [1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1400,1385,1375,1430,1430,1430,1430,1430,1430,1430,1430,1430,1405,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1333,1333,1333,1333,1333,
+                          1230,1230,1230,1230,1230,1230,1230, ,1135,1135,1135,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,
+                         1230,1230,1230,1230,1230,1230,1230,1230,1230,1230,1230,1230,1230,1230,
+                         1130,1130,1130,1130,1130,1130,1130,1130,1130,
+                         1030,1030,1030,1030,1030,1030,
+                         1230,1230,1230,1230,1230,1230,1230,
+                         1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,
+                         1330,1330,1330,1330,1330,1330,1330,1330,1330,1330,
+                         1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,  1430,
+                         1130,1130,1130,1130,1130,
+                         1230,1230,1230,1230,1230,
+                         1130,1130,1130,1130,1130,1130,1130,1130,1130,1130,
+                         1130,1130,1130,1130,1130,1130,1130,1130,1130,1130,1130,1130,1130,1130,
+                         //escaleras
+                         1030,980,930,880,830,780,730,680,630,
+                         1230,1230,1230,1230,1230,1230,1230,1230,1230,1230,1230,1230,1230,1230,
+                         1130,1130,
+                         1070,1070,1070,1070,1070,
+                         1130,1130,
+                         580,580,530,480,530,580,580,530,480,480,530,
+                         1080,1080,1080,1080,1080,1080,
+                         980,980,980,980,980,980,980,980,
+                         880,880,880,880,880,880,880,
+                         1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,
+                         1330,1330,1330,
+                         1230,1230,1230,
+                         1330,1330,1330,
+                         1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,
+                         ]; 
+        
         
         
         for (var i = 0; i <= Monedita_x.length; i++) {
@@ -424,8 +403,9 @@ var Monedita_y =[1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,143
         
  
         
-        var powerUp_x = [2700,4850,3161,1450,3323,6400,7000,8000,9200,10500];
-        var powerUp_y = [1300,800,1430,1350,950,1350,1350,1350,1350,1350];
+     var powerUp_x = [1420,2430,2700,4600,3320,3323,6750,7000,8450,9200,10370,10630,11900,12000,];
+     var powerUp_y = [1320,1350,1270,890,930,1350,1080,1350,1030,1050,1160,430,1060,1060,];
+      
         
       
      
@@ -452,8 +432,10 @@ var Monedita_y =[1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,143
 		
 	 takePowerUp: function(player, pocion) {
         
-    
-  this.coinSound.play();
+        
+       
+        this.music2.play();
+     
         pocion.kill();
            
 			this.player.body.velocity.x +=50;
@@ -466,109 +448,23 @@ var Monedita_y =[1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,143
 	      }
     },
     
-                
-                
-                
+  
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-      
-    //funcion vidas
-    addVida: function(){
-      var vidax = this.vidas.getFirstDead();
-        if (!vidax) {
-			return;
-		}
-        
-        vidax.anchor.setTo(0.5, 1);
-		vidax.reset(game.world.centerX, 0);
-		vidax.body.gravity.y = 300;
-		vidax.body.velocity.x = 70 * Phaser.Math.randomSign();
-		vidax.body.bounce.x = 1;
-		vidax.checkWorldBounds = true;
-		vidax.outOfBoundsKill = true;
+    playerWin: function() {
+     
+        this.music.stop()
+        game.state.start('menu');
         
     },
-    
-    
-    
-    dispararBala: function(){
-        
-        if(game.time.now > this.balaTime)
-        {
-            this.bala = this.balas.getFirstExists(false);
-            
-        if(this.bala){
-              if(this.tecla.isDown){
-                  this.bala.reset(this.player.x, this.player.y + 8);
-                  this.bala.body.velocity.x = 400;
-                  this.balaTime = game.time.now + 500;
-              }else if (this.tecla2.isDown){
-                  this.bala.reset(this.player.x, this.player.y + 8);
-                  this.bala.body.velocity.x = -400;
-                  this.balaTime = game.time.now + 500;
-              } else {
-                    this.bala.reset(this.player.x, this.player.y + 8);
-                    this.bala.body.velocity.x = 400;
-                    this.balaTime = game.time.now + 500;
-        
-              }
-               
-        }
-    }
-        
-},
-    
-    
-    
-    
-    loseVida: function(){
-        
-       
-        	game.global.vida -= 1; 
-		    this.vidaLabel.text = 'Vidas: ' + game.global.vida; 
-            for (var i = 0; i<this.enemies.length; i++){
-            this.enemies.getAt(i).kill();
-            }
-        
-          if(game.global.vida < 0){
-              game.state.start('menu');
-          }
-        
-        
-    },
-    
-    takeVida: function() {
-        
-		game.global.vida += 1; 
-        this.vidaLabel.text = 'Vidas: ' + game.global.vida;
-		   for (var i = 0; i<this.enemies.length; i++){
-            this.vidas.getAt(i).kill();
-            }
-	},
 
 	playerDie: function() {
         
         
         
         
-         this.muertelavel = game.add.text(100, 500, 'Has perdido', { font: '18px Arial', fill: '#ffffff' });
-	     
+        this.muertelavel = game.add.text(100, 500, 'Has perdido', { font: '18px Arial', fill: '#ffffff' });
+        this.music.stop()
+	    this.game.world.setBounds(0,0,1000,600); 
 		game.state.start('menu');
 		
 
@@ -582,6 +478,7 @@ var Monedita_y =[1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,1430,143
 
 	startMenu: function() {
 		game.state.start('menu');
+         this.music.stop();
 	},
 
 	createWorld: function() {

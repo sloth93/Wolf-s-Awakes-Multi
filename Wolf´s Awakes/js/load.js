@@ -25,6 +25,8 @@ var loadState = {
          game.load.image('fondo', 'assets/fondo.png');
         
         //assets para el mapa
+        game.load.image('boton1','assets/boton1.png');
+        game.load.image('boton2','assets/boton2.png');
         game.load.image('fondomuerte','assets/fondomuerte.png');
         game.load.image('salta','assets/Runner/salta.png');
         game.load.image('muevete','assets/Runner/muevete.png');
@@ -35,6 +37,7 @@ var loadState = {
         game.load.image('tierras', 'assets/1background.png');
         game.load.image('manaBar', 'assets/manaBar.png');
         game.load.image('manaBar2', 'assets/manaBar2.png');
+        game.load.image('manaBar2_2','assets/manaBar2_player2.png');
         game.load.image('moneda','assets/Runner/moneda.png');
         game.load.image('cave1','assets/Runner/CaveBackground.png');
         game.load.image('cave2','assets/Runner/CaveBaseForeground.png');
@@ -61,7 +64,8 @@ var loadState = {
         game.load.tilemap('Runner','assets/Runner/RunnerMap.json', null, Phaser.Tilemap.TILED_JSON);
         //asset de las vidas
         game.load.image('corazon', 'assets/corazon.png');
-       
+        game.load.audio('lobo', ['assets/lobo.ogg', 'assets/lobo.mp3']);
+        game.load.audio('music', ['assets/musica.ogg', 'assets/musica.mp3']);
 		game.load.audio('jump', ['assets/jump.ogg', 'assets/jump.mp3']);
 		game.load.audio('coin', ['assets/coin.ogg', 'assets/coin.mp3']);
 		//game.load.audio('dead', ['assets/dead.ogg', 'assets/dead.mp3']);
